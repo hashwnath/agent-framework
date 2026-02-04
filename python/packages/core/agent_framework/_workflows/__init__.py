@@ -55,6 +55,7 @@ from ._runner_context import (
     Message,
     RunnerContext,
 )
+from ._state import State
 from ._validation import (
     EdgeDuplicationError,
     GraphConnectivityError,
@@ -95,6 +96,7 @@ __all__ = [
     "Message",
     "Runner",
     "RunnerContext",
+    "State",
     "SingleEdgeGroup",
     "SubWorkflowRequestMessage",
     "SubWorkflowResponseMessage",
