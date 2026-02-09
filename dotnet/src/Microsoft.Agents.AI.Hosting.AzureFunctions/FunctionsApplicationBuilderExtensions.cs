@@ -2,6 +2,7 @@
 
 using Microsoft.Agents.AI.DurableTask;
 using Microsoft.Agents.AI.DurableTask.Workflows;
+using Microsoft.Agents.AI.Hosting.AzureFunctions.Workflows;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,6 +29,9 @@ public static class FunctionsApplicationBuilderExtensions
     public static FunctionsApplicationBuilder ConfigureDurableWorkflows(this FunctionsApplicationBuilder builder, Action<DurableWorkflowOptions> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
+
+        builder.Services.AddSingleton<IFunctionMetadataTransformer, DurableWorkflowFunctionMetadataTransformer>();
+
         // The main durable workflows services registration is done in Microsoft.DurableTask.Workflows.
         builder.Services.ConfigureDurableWorkflows(configure);
         return builder;

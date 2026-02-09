@@ -67,7 +67,7 @@ namespace Microsoft.Agents.AI.DurableTask.Workflows;
 /// <summary>
 /// Runs workflow orchestrations using message-driven superstep execution with Durable Task.
 /// </summary>
-internal sealed class DurableWorkflowRunner
+internal class DurableWorkflowRunner
 {
     private const int MaxSupersteps = 100;
 
