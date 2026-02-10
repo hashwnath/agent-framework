@@ -214,7 +214,7 @@ internal sealed partial class WriterExecutor : Executor
     /// Handles the initial writing request from the user.
     /// </summary>
     [MessageHandler]
-    private async ValueTask<ChatMessage> HandleInitialRequestAsync(
+    public async ValueTask<ChatMessage> HandleInitialRequestAsync(
         string message,
         IWorkflowContext context,
         CancellationToken cancellationToken = default)
@@ -226,7 +226,7 @@ internal sealed partial class WriterExecutor : Executor
     /// Handles revision requests from the critic with feedback.
     /// </summary>
     [MessageHandler]
-    private async ValueTask<ChatMessage> HandleRevisionRequestAsync(
+    public async ValueTask<ChatMessage> HandleRevisionRequestAsync(
         CriticDecision decision,
         IWorkflowContext context,
         CancellationToken cancellationToken = default)
