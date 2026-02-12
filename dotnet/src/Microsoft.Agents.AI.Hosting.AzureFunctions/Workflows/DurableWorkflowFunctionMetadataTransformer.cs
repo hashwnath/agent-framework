@@ -10,6 +10,7 @@ namespace Microsoft.Agents.AI.Hosting.AzureFunctions.Workflows;
 
 internal sealed class DurableWorkflowFunctionMetadataTransformer : IFunctionMetadataTransformer
 {
+    private static readonly HashSet<string> _registeredFunctionNames = new();
     private readonly ILogger<DurableWorkflowFunctionMetadataTransformer> _logger;
     private readonly DurableWorkflowOptions _options;
 
@@ -25,9 +26,6 @@ internal sealed class DurableWorkflowFunctionMetadataTransformer : IFunctionMeta
     public void Transform(IList<IFunctionMetadata> original)
     {
         this._logger.LogTransformStart(original.Count);
-
-        // Track registered function names to avoid duplicates when the same executor is used in multiple workflows
-        HashSet<string> registeredFunctionNames = new();
 
         foreach (var workflow in this._options.Workflows)
         {
@@ -77,7 +75,7 @@ internal sealed class DurableWorkflowFunctionMetadataTransformer : IFunctionMeta
                     string functionName = WorkflowNamingHelper.ToOrchestrationFunctionName(executorName);
 
                     // Skip if this function has already been registered by another workflow
-                    if (!registeredFunctionNames.Add(functionName))
+                    if (!_registeredFunctionNames.Add(functionName))
                     {
                         this._logger.LogSkippingDuplicateFunction(functionName, workflow.Key);
                         continue;
@@ -87,7 +85,7 @@ internal sealed class DurableWorkflowFunctionMetadataTransformer : IFunctionMeta
                     if (executorBinding is AIAgentBinding)
                     {
                         this._logger.LogAddingAgentEntityFunction(executorId, executorBinding.ExecutorType.FullName ?? executorBinding.ExecutorType.Name, workflow.Key);
-                        //original.Add(CreateAgentTrigger(functionName));
+                        original.Add(CreateEntityTrigger(executorName));
                     }
                     else
                     {
@@ -135,6 +133,11 @@ internal sealed class DurableWorkflowFunctionMetadataTransformer : IFunctionMeta
     //    };
     //}
 
+    //private static DefaultFunctionMetadata CreateOrchestrationFunction(string functionName)
+    //{
+    //    throw new NotImplementedException();
+    //}
+
     private static DefaultFunctionMetadata CreateActivityTrigger(string functionName)
     {
         return new DefaultFunctionMetadata()
@@ -147,6 +150,22 @@ internal sealed class DurableWorkflowFunctionMetadataTransformer : IFunctionMeta
                 """{"name":"durableTaskClient","type":"durableClient","direction":"In"}"""
             ],
             EntryPoint = BuiltInFunctions.InvokeWorkflowActivityFunctionEntryPoint,
+            ScriptFile = BuiltInFunctions.ScriptFile,
+        };
+    }
+
+    private static DefaultFunctionMetadata CreateEntityTrigger(string functionName)
+    {
+        return new DefaultFunctionMetadata()
+        {
+            Name = AgentSessionId.ToEntityName(functionName),
+            Language = "dotnet-isolated",
+            RawBindings =
+            [
+                """{"name":"encodedEntityRequest","type":"entityTrigger","direction":"In"}""",
+                """{"name":"client","type":"durableClient","direction":"In"}"""
+            ],
+            EntryPoint = BuiltInFunctions.RunAgentEntityFunctionEntryPoint,
             ScriptFile = BuiltInFunctions.ScriptFile,
         };
     }

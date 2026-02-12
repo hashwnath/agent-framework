@@ -9,9 +9,17 @@ using Microsoft.DurableTask.Client;
 
 namespace Microsoft.Agents.AI.Hosting.AzureFunctions.Workflows;
 
-internal sealed class FunctionsWorkflowRunner : DurableWorkflowRunner
+/// <summary>
+/// Provides functionality to invoke and manage workflow orchestrations in response to HTTP requests within an Azure
+/// Functions environment.
+/// </summary>
+public sealed class FunctionsWorkflowRunner : DurableWorkflowRunner
 {
-    internal FunctionsWorkflowRunner(DurableOptions durableOptions) : base(durableOptions)
+    /// <summary>
+    /// Initializes a new instance of the FunctionsWorkflowRunner class using the specified DurableOptions.
+    /// </summary>
+    /// <param name="durableOptions">The DurableOptions that configure the behavior of the workflow runner. This parameter cannot be null.</param>
+    public FunctionsWorkflowRunner(DurableOptions durableOptions) : base(durableOptions)
     {
     }
 

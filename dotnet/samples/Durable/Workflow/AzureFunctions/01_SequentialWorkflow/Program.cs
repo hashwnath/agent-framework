@@ -6,28 +6,13 @@ using Microsoft.Agents.AI.Hosting.AzureFunctions;
 using Microsoft.Extensions.Hosting;
 using SequentialWorkflow;
 
-Func<string, string> orderParserFunc = input =>
-{
-    // We accept both short ordereId(Ex:12345) and long order reference number(MSFT12345)
-    // OrderId is the last 5 digigs of order reference number.
-    const int OrderIdPartLength = 5;
-    if (input.Length > OrderIdPartLength)
-    {
-        return input[^OrderIdPartLength..];
-    }
-
-    return input;
-};
-var orderParserExecutor = orderParserFunc.BindAsExecutor("ParseOrderId");
-
 OrderLookup orderLookupExecutor = new();
 OrderEnrich orderEnricherExeecutor = new();
 PaymentProcessor paymentProcessorExecutor = new();
 
-Workflow fulfillOrder = new WorkflowBuilder(orderParserExecutor)
+Workflow fulfillOrder = new WorkflowBuilder(orderLookupExecutor)
     .WithName("FulfillOrder")
     .WithDescription("Looks up an order by ID and run payment processing")
-    .AddEdge(orderParserExecutor, orderLookupExecutor)
     .AddEdge(orderLookupExecutor, orderEnricherExeecutor)
     .AddEdge(orderEnricherExeecutor, paymentProcessorExecutor)
     .Build();
@@ -37,7 +22,10 @@ Workflow fulfillOrder = new WorkflowBuilder(orderParserExecutor)
 using IHost app = FunctionsApplication
     .CreateBuilder(args)
     .ConfigureFunctionsWebApplication()
-    .ConfigureDurableWorkflows(options => options.AddWorkflow(fulfillOrder))
-    //  .ConfigureDurableAgents(options => options.AddAIAgent(agent, timeToLive: TimeSpan.FromHours(1)))
+    .ConfigureDurableOptions(durableOption =>
+    {
+        // Add a workflow.
+        durableOption.Workflows.AddWorkflow(fulfillOrder);
+    })
     .Build();
 app.Run();
